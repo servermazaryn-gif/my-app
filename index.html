@@ -1,10 +1,110 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My App</title>
+  <title>Staff Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 8px 15px;
+      margin-bottom: 15px;
+      cursor: pointer;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #333;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+
+    .status {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Hello GitHub Pages 🚀</h1>
-  <p>Success deploy free hosting</p>
+
+<h2>📊 Staff Report Dashboard</h2>
+
+<button onclick="loadData()">Reload Data</button>
+
+<div class="status" id="status">Ready...</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Staff ID</th>
+      <th>Staff Name</th>
+      <th>Status</th>
+      <th>Touch Account</th>
+      <th>Branch</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+async function loadData() {
+  document.getElementById("status").innerText = "Loading...";
+
+  try {
+    const res = await fetch("http://175.136.249.177:3000/report");
+    const json = await res.json();
+
+    const data = json.data;
+
+    let rows = "";
+
+    data.forEach(item => {
+      rows += `
+        <tr>
+          <td>${item.STAFF_ID}</td>
+          <td>${item.STAFF_NAME}</td>
+          <td>${item.STATUS}</td>
+          <td>${item.TOUCH_ACCOUNT}</td>
+          <td>${item.BRANCH_NAME}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("tableBody").innerHTML = rows;
+    document.getElementById("status").innerText =
+      "Loaded: " + data.length + " records ✔";
+
+  } catch (err) {
+    document.getElementById("status").innerText =
+      "Error: " + err.message;
+  }
+}
+
+// auto load bila buka page
+loadData();
+</script>
+
 </body>
 </html>
