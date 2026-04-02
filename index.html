@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Staff Dashboard</title>
+  <title>Dashboard Pie Chart</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
@@ -9,57 +11,45 @@
       padding: 20px;
     }
 
-    h2 {
-      margin-bottom: 10px;
-    }
-
-    button {
-      padding: 8px 15px;
-      margin-bottom: 15px;
-      cursor: pointer;
+    .container {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
     }
 
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 20px;
     }
 
     th, td {
       border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
+      padding: 8px;
     }
 
     th {
       background: #333;
       color: white;
     }
-
-    tr:nth-child(even) {
-      background: #f2f2f2;
-    }
-
-    .status {
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
   </style>
 </head>
 
 <body>
 
-<h2>📊 Staff Report Dashboard</h2>
+<h2>📊 Staff Dashboard (Pie Chart + Table)</h2>
 
-<button onclick="loadData()">Reload Data</button>
+<div class="container">
+  <div>
+    <canvas id="pieChart" width="400" height="400"></canvas>
+  </div>
+</div>
 
-<div class="status" id="status">Ready...</div>
-
+<h3>Table Data</h3>
 <table>
   <thead>
     <tr>
-      <th>Staff ID</th>
-      <th>Staff Name</th>
+      <th>Staff</th>
       <th>Status</th>
       <th>Touch Account</th>
       <th>Branch</th>
@@ -69,41 +59,62 @@
 </table>
 
 <script>
+
+let chart;
+
 async function loadData() {
-  document.getElementById("status").innerText = "Loading...";
+  const res = await fetch("http://175.136.249.177:3000/report");
+  const json = await res.json();
 
-  try {
-    const res = await fetch("http://175.136.249.177:3000/report");
-    const json = await res.json();
+  const data = json.data;
 
-    const data = json.data;
+  // ======================
+  // TABLE
+  // ======================
+  let rows = "";
 
-    let rows = "";
+  data.forEach(item => {
+    rows += `
+      <tr>
+        <td>${item.STAFF_NAME}</td>
+        <td>${item.STATUS}</td>
+        <td>${item.TOUCH_ACCOUNT}</td>
+        <td>${item.BRANCH_NAME}</td>
+      </tr>
+    `;
+  });
 
-    data.forEach(item => {
-      rows += `
-        <tr>
-          <td>${item.STAFF_ID}</td>
-          <td>${item.STAFF_NAME}</td>
-          <td>${item.STATUS}</td>
-          <td>${item.TOUCH_ACCOUNT}</td>
-          <td>${item.BRANCH_NAME}</td>
-        </tr>
-      `;
-    });
+  document.getElementById("tableBody").innerHTML = rows;
 
-    document.getElementById("tableBody").innerHTML = rows;
-    document.getElementById("status").innerText =
-      "Loaded: " + data.length + " records ✔";
+  // ======================
+  // PIE CHART (STATUS)
+  // ======================
+  let statusCount = {};
 
-  } catch (err) {
-    document.getElementById("status").innerText =
-      "Error: " + err.message;
-  }
+  data.forEach(item => {
+    statusCount[item.STATUS] =
+      (statusCount[item.STATUS] || 0) + item.TOUCH_ACCOUNT;
+  });
+
+  const labels = Object.keys(statusCount);
+  const values = Object.values(statusCount);
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values
+      }]
+    }
+  });
 }
 
-// auto load bila buka page
+// auto load
 loadData();
+
 </script>
 
 </body>
